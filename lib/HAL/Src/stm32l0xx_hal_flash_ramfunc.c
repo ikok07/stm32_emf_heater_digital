@@ -40,7 +40,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "../Include/stm32l0xx_hal.h"
+#include "../../shared_values/Include/stm32l0xx_hal.h"
 
 /** @addtogroup STM32L0xx_HAL_Driver
   * @{

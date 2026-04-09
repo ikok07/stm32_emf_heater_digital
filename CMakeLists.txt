@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 3.22)
 #
 
 # Setup compiler settings
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
@@ -35,16 +35,30 @@ enable_language(C ASM)
 add_executable(${CMAKE_PROJECT_NAME})
 
 # Add sources to executable
-file(GLOB APP_SOURCES
+file(GLOB_RECURSE APP_SOURCES
         "Src/*.c"
         "./startup_stm32l031xx.s"
 )
-file (GLOB HAL_SOURCES "lib/HAL/Src/*.c")
 file (GLOB CMSIS_SOURCES "lib/CMSIS/Device/ST/STM32L0xx/Source/*.c")
+file (GLOB HAL_SOURCES "lib/HAL/Src/*.c")
+file (GLOB FREERTOS_SOURCES
+        "lib/FreeRTOS/Src/*.c"
+        "lib/FreeRTOS_Port/Src/*.c"
+)
+file (GLOB DAC_X050X_SOURCES "lib/DAC_X050X/Src/*.c")
+file (GLOB SHVAL_SOURCES "lib/shared_values/Src/*.c")
+file (GLOB TASKS_SCHEDULER_SOURCES "lib/tasks_scheduler/Src/*.c")
+file (GLOB LOGGER_SOURCES "lib/logger/Src/*.c")
+
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         ${APP_SOURCES}
         ${CMSIS_SOURCES}
         ${HAL_SOURCES}
+        ${FREERTOS_SOURCES}
+        ${DAC_X050X_SOURCES}
+        ${SHVAL_SOURCES}
+        ${TASKS_SCHEDULER_SOURCES}
+        ${LOGGER_SOURCES}
 )
 
 # Add include paths
@@ -53,11 +67,18 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         lib/CMSIS/Include
         lib/CMSIS/Device/ST/STM32L0xx/Include
         lib/HAL/Include
+        lib/FreeRTOS_Port/Include
+        lib/FreeRTOS/Include
+        lib/DAC_X050X/Include
+        lib/shared_values/Include
+        lib/tasks_scheduler/Include
+        lib/logger/Include
 )
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
         STM32L031xx
+        DAC_80502
 )
 
 # Remove wrong libob.a library dependency when using cpp files
