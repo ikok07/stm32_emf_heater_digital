@@ -206,5 +206,5 @@ uint8_t i2c_read(uint8_t DeviceAddress, uint8_t RegisterAddress, uint16_t *RegCo
 
 void dac_err_log(DACx050x_ErrorTypeDef DacError, uint8_t SpecificErrorCode) {
     // Any error would be fatal to the application
-    LOGGER_LogBasic(1);
+    LOGGER_LogF(LOGGER_LEVEL_FATAL, "DAC Error: %d; Specific error code: %d", DacError, SpecificErrorCode);
 }

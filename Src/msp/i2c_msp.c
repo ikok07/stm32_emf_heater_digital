@@ -13,7 +13,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
     __HAL_RCC_I2C1_CLK_ENABLE();
 
     GPIO_InitTypeDef GPIO_Config = {
-        .Mode = GPIO_MODE_ANALOG,
+        .Mode = GPIO_MODE_AF_OD,
         .Alternate = GPIO_AF1_I2C1,
         .Pull = GPIO_NOPULL,
         .Speed = GPIO_SPEED_FAST,

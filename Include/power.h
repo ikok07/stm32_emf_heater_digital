@@ -1,0 +1,12 @@
+//
+// Created by Kok on 4/9/26.
+//
+
+#ifndef STM32_DIGITAL_POTENTIOMETER_V2_POWER_H
+#define STM32_DIGITAL_POTENTIOMETER_V2_POWER_H
+
+#include "stm32l0xx_hal.h"
+
+HAL_StatusTypeDef POWER_Init();
+
+#endif //STM32_DIGITAL_POTENTIOMETER_V2_POWER_H
