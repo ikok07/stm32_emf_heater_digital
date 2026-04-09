@@ -30,13 +30,18 @@ SHVAL_ErrorTypeDef SHVAL_GetValue(const SHVAL_HandleTypeDef *hshval, uint32_t *V
 
 SHVAL_ErrorTypeDef SHVAL_SetValue(SHVAL_HandleTypeDef *hshval, uint32_t Value, uint32_t TimeoutMS) {
     if (xSemaphoreTake(hshval->Mutex, pdMS_TO_TICKS(TimeoutMS))) {
+        if (hshval->Value == Value) {
+            xSemaphoreGive(hshval->Mutex);
+            return SHVAL_ERROR_OK;
+        }
+
         hshval->Value = Value;
 
         if (hshval->SubscribersQueue) {
             // Queue is reset. All previous values are invalid
             xQueueReset(hshval->SubscribersQueue);
             for (int i = 0; i < hshval->SubscribersCount; i++) {
-                xQueueSend(hshval->SubscribersQueue, &Value, portMAX_DELAY);
+                xQueueSend(hshval->SubscribersQueue, &Value, pdMS_TO_TICKS(TimeoutMS));
             }
         }
 

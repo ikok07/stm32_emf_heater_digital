@@ -9,27 +9,43 @@
 #include "dac.h"
 #include "i2c.h"
 #include "log.h"
+#include "logging.h"
 #include "stm32l0xx_hal.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName ) {
-    __disable_irq();
+    LOGGER_LogBasic(1);
     while (1) {}
 }
 
 int main(void) {
-    HAL_StatusTypeDef hal_err;
-    if ((hal_err = HAL_Init()) != HAL_OK) {
+    uint8_t err;
+    if ((err = HAL_Init()) != 0) {
         while (1);
     }
 
     // Initialize logger
-    LOGGER_Init();
-    LOGGER_Enable();
+    LOGGING_Init();
+
+    // Setup clocks
+    // TODO: ...
 
     // Setup I2C Bus
-    if ((hal_err = I2C_Init()) != HAL_OK) {
-        LOGGER_LogBasic();
+    if ((err = I2C_Init()) != 0) {
+        LOGGER_LogBasic(1);
+        while (1);
     }
+
+    // Initialize DAC
+    if ((err = DAC_Init()) != 0) {
+        LOGGER_LogBasic(1);
+        while (1);
+    }
+
+    // Initialize encoder
+    // TODO: ...
+
+    // Start DAC Tasks
+    DAC_StartTasks();
 
     vTaskStartScheduler();
 }

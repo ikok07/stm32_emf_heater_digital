@@ -13,3 +13,6 @@
 [submodule "lib/logger"]
 	path = lib/logger
 	url = https://github.com/ikok07/stm32_logger.git
+[submodule "lib/shared_values"]
+	path = lib/shared_values
+	url = https://github.com/ikok07/stm32_shared_values.git

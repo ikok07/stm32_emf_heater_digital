@@ -7,13 +7,14 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "app_state.h"
+#include "log.h"
 #include "stm32l0xx_hal.h"
 #include "tasks_common.h"
 
 /* --- Tasks --- */
 void dac_a_task(void *arg);
 void dac_b_task(void *arg);
-void dac_chctrl_task(void *arg);
+void dac_chan_ctrl_task(void *arg);
 
 /* --- Init Methods --- */
 void chan_ctrl_init();
@@ -29,7 +30,7 @@ uint8_t DAC_Init() {
 
     // Setup check if device is ready
     if ((hal_err = HAL_I2C_IsDeviceReady(&gAppState.hi2c, DAC_I2C_ADDRESS, DAC_I2C_CONN_TRIALS, DAC_I2C_CONN_TIMEOUT)) != HAL_OK) {
-        return hal_err;
+        return 1;
     }
 
     // Setup channel control pins
@@ -62,7 +63,7 @@ uint8_t DAC_Init() {
 
     // Setup DAC
     if ((dac_err = DACx050x_Init(&gAppState.hdac))) {
-        return dac_err;
+        return 1;
     }
 
     // Setup shared dac value variables
@@ -73,7 +74,7 @@ uint8_t DAC_Init() {
     gAppState.SharedValues.DacAValue = SHVAL_Init(&SHVAL_Config);
     gAppState.SharedValues.DacBValue = SHVAL_Init(&SHVAL_Config);
 
-    return dac_err;
+    return 0;
 }
 
 void DAC_StartTasks() {
@@ -103,7 +104,7 @@ void DAC_StartTasks() {
         .Priority = DAC_CHAN_CTRL_TASK_PRIORITY,
         .StackDepth = DAC_CHAN_CTRL_TASK_STACK_DEPTH,
         .Args = NULL,
-        .Function = dac_chctrl_task
+        .Function = dac_chan_ctrl_task
     };
 
     SCHEDULER_Create(&gAppState.Tasks.DacATask);
@@ -125,9 +126,7 @@ void dac_a_task(void *ptr) {
     while (1) {
         if (xQueueReceive(gAppState.SharedValues.DacAValue.SubscribersQueue, &value, portMAX_DELAY)) {
             // Error is handled in the logging callback
-            if (DACx50x_WriteData(&gAppState.hdac, DAC_X050X_OUTPUTA, value) != DAC_X050X_ERROR_OK) {
-                continue;
-            }
+            DACx50x_WriteData(&gAppState.hdac, DAC_X050X_OUTPUTA, value);
         }
     }
 }
@@ -137,20 +136,18 @@ void dac_b_task(void *ptr) {
     while (1) {
         if (xQueueReceive(gAppState.SharedValues.DacBValue.SubscribersQueue, &value, portMAX_DELAY)) {
             // Error is handled in the logging callback
-            if (DACx50x_WriteData(&gAppState.hdac, DAC_X050X_OUTPUTB, value) != DAC_X050X_ERROR_OK) {
-                continue;
-            };
+            DACx50x_WriteData(&gAppState.hdac, DAC_X050X_OUTPUTB, value);
         }
     }
 }
 
-void dac_chctrl_task(void *arg) {
+void dac_chan_ctrl_task(void *arg) {
     GPIO_PinState ch1_en, ch2_en;
 
     while (1) {
         if (xTaskNotifyWait(0x00, 0xFF, NULL, portMAX_DELAY)) {
             ch1_en = HAL_GPIO_ReadPin(DAC_CHCTRL_PORT, DAC_CHCTRL_1_PIN);
-            ch2_en = HAL_GPIO_ReadPin(DAC_CHCTRL_PORT, DAC_CHCTRL_1_PIN);
+            ch2_en = HAL_GPIO_ReadPin(DAC_CHCTRL_PORT, DAC_CHCTRL_2_PIN);
 
             // Errors are handled in the logging callback
             if (DACx050x_OutputControl(&gAppState.hdac, DAC_X050X_OUTPUTA, ch1_en) != DAC_X050X_ERROR_OK) {
@@ -208,5 +205,6 @@ uint8_t i2c_read(uint8_t DeviceAddress, uint8_t RegisterAddress, uint16_t *RegCo
 }
 
 void dac_err_log(DACx050x_ErrorTypeDef DacError, uint8_t SpecificErrorCode) {
-
+    // Any error would be fatal to the application
+    LOGGER_LogBasic(1);
 }
