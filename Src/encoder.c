@@ -2,7 +2,7 @@
 // Created by Kok on 4/9/26.
 //
 
-#include "../Include/encoder.h"
+#include "encoder.h"
 
 #include "app_state.h"
 #include "log.h"
@@ -15,16 +15,27 @@
 #define ENCODER_MIN_VALUE               0
 #define ENCODER_TIM_PERIOD              0xFFFF          // Max 16-bit value
 
+#define ENCODER_RESET_PORT              GPIOB
+#define ENCODER_1_RESET_PIN             4
+#define ENCODER_2_RESET_PIN             5
+
+#define ENCODER_NOTIFY_RESET            (1 << 0)
+
 #define ENCODER_UPDATE_DAC_TIMEOUT      1000
 
 void enc1_task(void *arg);
 void enc2_task(void *arg);
 
 void handle_new_enc_value(TIM_HandleTypeDef *htim, SHVAL_HandleTypeDef *hshval, uint16_t *PrevCounter, int32_t *EncValue);
+void setup_reset_buttons();
 
 HAL_StatusTypeDef ENCODER_Init() {
     HAL_StatusTypeDef hal_err = HAL_OK;
 
+    // Setup reset GPIOs
+    setup_reset_buttons();
+
+    // Setup timers
     TIM_HandleTypeDef TIM_Handle = {
         .Instance = TIM2,
         .Init = {
@@ -103,9 +114,16 @@ void ENCODER_StartTasks() {
 void enc1_task(void *arg) {
     uint16_t prevCounter = __HAL_TIM_GET_COUNTER(&gAppState.htim2);
     int32_t encValue = 0;
+    uint32_t notifyValue = 0;
 
     while (1) {
-        if (xTaskNotifyWait(0x00, 0xFF, NULL, portMAX_DELAY)) {
+        if (xTaskNotifyWait(0x00, 0xFFFFFFFF, &notifyValue, portMAX_DELAY)) {
+            if (notifyValue & ENCODER_NOTIFY_RESET) {
+                __HAL_TIM_SET_COUNTER(&gAppState.htim2, 0);
+                prevCounter = 0;
+                encValue = 0;
+            }
+
             handle_new_enc_value(&gAppState.htim2, &gAppState.SharedValues.DacAValue, &prevCounter, &encValue);
         }
     }
@@ -114,9 +132,16 @@ void enc1_task(void *arg) {
 void enc2_task(void *arg) {
     uint16_t prevCounter = __HAL_TIM_GET_COUNTER(&gAppState.htim22);
     int32_t encValue = 0;
+    uint32_t notifyValue = 0;
 
     while (1) {
-        if (xTaskNotifyWait(0x00, 0xFF, NULL, portMAX_DELAY)) {
+        if (xTaskNotifyWait(0x00, 0xFFFFFFFF, &notifyValue, portMAX_DELAY)) {
+            if (notifyValue & ENCODER_NOTIFY_RESET) {
+                __HAL_TIM_SET_COUNTER(&gAppState.htim22, 0);
+                prevCounter = 0;
+                encValue = 0;
+            }
+
             handle_new_enc_value(&gAppState.htim22, &gAppState.SharedValues.DacBValue, &prevCounter, &encValue);
         }
     }
@@ -124,7 +149,7 @@ void enc2_task(void *arg) {
 
 void handle_new_enc_value(TIM_HandleTypeDef *htim, SHVAL_HandleTypeDef *hshval, uint16_t *PrevCounter, int32_t *EncValue) {
     uint16_t counter = __HAL_TIM_GET_COUNTER(htim);
-    int16_t diff = counter - *PrevCounter;
+    int16_t diff = (int16_t)(counter - *PrevCounter);
 
     if (*EncValue + diff < ENCODER_MIN_VALUE || *EncValue + diff > ENCODER_MAX_VALUE) {
         *PrevCounter = counter;
@@ -142,10 +167,35 @@ void handle_new_enc_value(TIM_HandleTypeDef *htim, SHVAL_HandleTypeDef *hshval, 
     };
 }
 
+void setup_reset_buttons() {
+    GPIO_InitTypeDef GPIO_Config = {
+        .Mode = GPIO_MODE_IT_RISING,
+        .Pin = ENCODER_1_RESET_PIN,
+        .Pull = GPIO_PULLDOWN,
+        .Speed = GPIO_SPEED_LOW
+    };
+
+    HAL_GPIO_Init(ENCODER_RESET_PORT, &GPIO_Config);
+
+    GPIO_Config.Pin = ENCODER_2_RESET_PIN;
+    HAL_GPIO_Init(ENCODER_RESET_PORT, &GPIO_Config);
+
+    HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn, 0, 0);
+}
+
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM2) {
-        xTaskNotifyGive(gAppState.Tasks.Enc1Task.OsTask);
+        xTaskNotify(gAppState.Tasks.Enc1Task.OsTask, 0, eNoAction);
     } else if (htim->Instance == TIM22) {
-        xTaskNotifyGive(gAppState.Tasks.Enc2Task.OsTask);
+        xTaskNotify(gAppState.Tasks.Enc2Task.OsTask, 0, eNoAction);
+    }
+}
+
+void HAL_GPIO_EXTI_IRQHandler(uint16_t GPIO_Pin) {
+    if (GPIO_Pin == ENCODER_1_RESET_PIN) {
+        xTaskNotify(gAppState.Tasks.Enc1Task.OsTask, ENCODER_NOTIFY_RESET, eNoAction);
+    } else if (GPIO_Pin == ENCODER_2_RESET_PIN) {
+        xTaskNotify(gAppState.Tasks.Enc2Task.OsTask, ENCODER_NOTIFY_RESET, eNoAction);
     }
 }

@@ -17,6 +17,11 @@ void EXTI0_1_IRQHandler() {
     HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
 }
 
+void EXTI4_15_IRQHandler() {
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
+}
+
 void TIM2_IRQHandler() {
     HAL_TIM_IRQHandler(&gAppState.htim2);
 }
