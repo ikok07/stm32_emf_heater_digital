@@ -16,3 +16,6 @@
 [submodule "lib/shared_values"]
 	path = lib/shared_values
 	url = https://github.com/ikok07/stm32_shared_values.git
+[submodule "lib/ssd1306-stm32HAL"]
+	path = lib/ssd1306-stm32HAL
+	url = https://github.com/4ilo/ssd1306-stm32HAL.git

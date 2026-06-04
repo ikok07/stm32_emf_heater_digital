@@ -150,6 +150,12 @@ SECTIONS
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
+  /* Special region to store error logs */
+  .noinit (NOLOAD) :
+  {
+        *(.noinit)
+  } > RAM
+
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data :
   {

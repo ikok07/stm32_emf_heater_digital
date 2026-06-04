@@ -1,12 +1,12 @@
 //
-// Created by Kok on 4/9/26.
+// Created by Kok on 6/4/26.
 //
 
-#ifndef STM32_DIGITAL_POTENTIOMETER_V2_POWER_H
-#define STM32_DIGITAL_POTENTIOMETER_V2_POWER_H
+#ifndef STM32_EMF_HEATER_DIGITAL_POWER_H
+#define STM32_EMF_HEATER_DIGITAL_POWER_H
 
-#include "stm32l0xx_hal.h"
+#include "error.h"
 
-HAL_StatusTypeDef POWER_Init();
+AppErrorTypeDef POWER_Init();
 
-#endif //STM32_DIGITAL_POTENTIOMETER_V2_POWER_H
+#endif //STM32_EMF_HEATER_DIGITAL_POWER_H

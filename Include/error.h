@@ -1,0 +1,33 @@
+//
+// Created by Kok on 6/4/26.
+//
+
+#ifndef STM32_EMF_HEATER_DIGITAL_ERROR_H
+#define STM32_EMF_HEATER_DIGITAL_ERROR_H
+
+#include <stdint.h>
+
+typedef enum {
+    ERROR_OK,
+    ERROR_PWR_OSC,
+    ERROR_PWR_CLK,
+    ERROR_I2C_INIT,
+    ERROR_DISPLAY_INIT,
+    ERROR_DISPLAY_BOOT_MSG,
+} AppErrorTypeDef;
+
+typedef struct {
+    uint32_t Magic;
+    uint8_t ResetCount;
+    uint32_t Cursor;
+    AppErrorTypeDef errors[2];
+} AppErrorLogTypeDef;
+
+void ERROR_Init();
+
+AppErrorLogTypeDef *ERROR_DumpLog();
+
+void ERROR_Trigger(AppErrorTypeDef Error);
+void ERROR_TriggerFatal(AppErrorTypeDef Error);
+
+#endif //STM32_EMF_HEATER_DIGITAL_ERROR_H

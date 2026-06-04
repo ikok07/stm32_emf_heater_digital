@@ -1,29 +1,24 @@
 //
-// Created by Kok on 4/8/26.
+// Created by Kok on 6/4/26.
 //
 
+#include "gpio_defs.h"
 #include "stm32l0xx_hal.h"
 
-#define I2C_PORT                            GPIOA
-#define I2C_SCL_PIN                         9
-#define I2C_SDA_PIN                         10
-
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
-    __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_I2C1_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
 
-    GPIO_InitTypeDef GPIO_Config = {
+    GPIO_InitTypeDef gpio_config = {
         .Mode = GPIO_MODE_AF_OD,
         .Alternate = GPIO_AF1_I2C1,
         .Pull = GPIO_NOPULL,
-        .Speed = GPIO_SPEED_FAST,
+        .Speed = GPIO_SPEED_FREQ_HIGH
     };
 
-    // Setup SCL
-    GPIO_Config.Pin = I2C_SCL_PIN;
-    HAL_GPIO_Init(I2C_PORT, &GPIO_Config);
+    gpio_config.Pin = GPIO_PIN_I2C_SCL;
+    HAL_GPIO_Init(GPIO_PORT_I2C_SCL, &gpio_config);
 
-    // Setup SDA
-    GPIO_Config.Pin = I2C_SDA_PIN;
-    HAL_GPIO_Init(I2C_PORT, &GPIO_Config);
+    gpio_config.Pin = GPIO_PIN_I2C_SDA;
+    HAL_GPIO_Init(GPIO_PORT_I2C_SDA, &gpio_config);
 }

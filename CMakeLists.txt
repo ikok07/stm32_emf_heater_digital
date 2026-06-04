@@ -19,7 +19,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Set the project name
-set(CMAKE_PROJECT_NAME stm32_digital_potentiometer_v2)
+set(CMAKE_PROJECT_NAME stm32_emf_heater_digital)
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -35,30 +35,21 @@ enable_language(C ASM)
 add_executable(${CMAKE_PROJECT_NAME})
 
 # Add sources to executable
-file(GLOB_RECURSE APP_SOURCES
+file(GLOB APP_SOURCES
         "Src/*.c"
+        "Src/msp/*.c"
         "./startup_stm32l031xx.s"
-)
-file (GLOB CMSIS_SOURCES "lib/CMSIS/Device/ST/STM32L0xx/Source/*.c")
-file (GLOB HAL_SOURCES "lib/HAL/Src/*.c")
-file (GLOB FREERTOS_SOURCES
+        "lib/CMSIS/Device/ST/STM32L0xx/Source/*.c"
+        "lib/HAL/Src/*.c"
         "lib/FreeRTOS/Src/*.c"
         "lib/FreeRTOS_Port/Src/*.c"
+        "lib/shared_values/Src/*.c"
+        "lib/tasks_scheduler/Src/*.c"
+        "lib/ssd1306/Src/*.c"
 )
-file (GLOB DAC_X050X_SOURCES "lib/DAC_X050X/Src/*.c")
-file (GLOB SHVAL_SOURCES "lib/shared_values/Src/*.c")
-file (GLOB TASKS_SCHEDULER_SOURCES "lib/tasks_scheduler/Src/*.c")
-file (GLOB LOGGER_SOURCES "lib/logger/Src/*.c")
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
         ${APP_SOURCES}
-        ${CMSIS_SOURCES}
-        ${HAL_SOURCES}
-        ${FREERTOS_SOURCES}
-        ${DAC_X050X_SOURCES}
-        ${SHVAL_SOURCES}
-        ${TASKS_SCHEDULER_SOURCES}
-        ${LOGGER_SOURCES}
 )
 
 # Add include paths
@@ -69,16 +60,14 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         lib/HAL/Include
         lib/FreeRTOS_Port/Include
         lib/FreeRTOS/Include
-        lib/DAC_X050X/Include
         lib/shared_values/Include
         lib/tasks_scheduler/Include
-        lib/logger/Include
+        lib/ssd1306/Include
 )
 
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
         STM32L031xx
-        DAC_80502
 )
 
 # Remove wrong libob.a library dependency when using cpp files
