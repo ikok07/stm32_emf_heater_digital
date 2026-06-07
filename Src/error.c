@@ -14,7 +14,8 @@
 
 #define ERROR_LOG_MAGIC                 0x23547567
 
-__attribute__((section(".noinit"))) AppErrorLogTypeDef gErrorLog;
+// __attribute__((section(".noinit"))) AppErrorLogTypeDef gErrorLog;
+AppErrorLogTypeDef gErrorLog;
 
 void log_error(AppErrorTypeDef error);
 

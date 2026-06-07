@@ -3,6 +3,7 @@
 //
 
 #include "app_state.h"
+#include "gpio_defs.h"
 #include "stm32l0xx_hal.h"
 
 #define ENC1_PORT                   GPIOA
@@ -38,5 +39,28 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim) {
         __HAL_RCC_TIM21_CLK_ENABLE();
         HAL_NVIC_SetPriority(TIM21_IRQn, 4, 0);
         HAL_NVIC_EnableIRQ(TIM21_IRQn);
+    }
+}
+
+void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == TIM22) {
+        __HAL_RCC_TIM22_CLK_ENABLE();
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+
+        GPIO_InitTypeDef gpio_conf = {
+            .Mode = GPIO_MODE_AF_PP,
+            .Alternate = GPIO_AF5_TIM22,
+            .Pull = GPIO_PULLUP,
+            .Speed = GPIO_SPEED_FREQ_MEDIUM
+        };
+
+        gpio_conf.Pin = GPIO_PIN_ENC_CH1;
+        HAL_GPIO_Init(GPIO_PORT_ENC_CH1, &gpio_conf);
+
+        gpio_conf.Pin = GPIO_PIN_ENC_CH2;
+        HAL_GPIO_Init(GPIO_PORT_ENC_CH2, &gpio_conf);
+
+        HAL_NVIC_SetPriority(TIM22_IRQn, 5, 0);
+        HAL_NVIC_EnableIRQ(TIM22_IRQn);
     }
 }

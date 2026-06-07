@@ -11,14 +11,14 @@
 
 #include "task_scheduler.h"
 #include "shared_values.h"
-#include "stm32l0xx_hal_i2c.h"
 
 typedef struct {
-
+    TaskHandle_t EncTask;
+    TaskHandle_t DisplayTask;
 } App_Tasks;
 
 typedef struct {
-
+    SHVAL_HandleTypeDef EncValue;
 } APP_SharedValues;
 
 typedef struct {
@@ -26,6 +26,7 @@ typedef struct {
     APP_SharedValues SharedValues;
     I2C_HandleTypeDef hi2c;
     TIM_HandleTypeDef htim21;
+    TIM_HandleTypeDef htim22;
 } APP_State;
 
 extern APP_State gAppState;
