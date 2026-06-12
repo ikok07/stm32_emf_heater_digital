@@ -44,7 +44,6 @@ file(GLOB APP_SOURCES
         "lib/FreeRTOS/Src/*.c"
         "lib/FreeRTOS_Port/Src/*.c"
         "lib/shared_values/Src/*.c"
-        "lib/tasks_scheduler/Src/*.c"
         "lib/ssd1306/Src/*.c"
 )
 
@@ -61,7 +60,6 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         lib/FreeRTOS_Port/Include
         lib/FreeRTOS/Include
         lib/shared_values/Include
-        lib/tasks_scheduler/Include
         lib/ssd1306/Include
 )
 

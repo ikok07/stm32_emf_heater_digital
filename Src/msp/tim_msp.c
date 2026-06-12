@@ -4,6 +4,7 @@
 
 #include "app_state.h"
 #include "gpio_defs.h"
+#include "nvic_defs.h"
 #include "stm32l0xx_hal.h"
 
 #define ENC1_PORT                   GPIOA
@@ -37,7 +38,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM21) {
         __HAL_RCC_TIM21_CLK_ENABLE();
-        HAL_NVIC_SetPriority(TIM21_IRQn, 4, 0);
+        HAL_NVIC_SetPriority(TIM21_IRQn, NVIC_PRIORITY_TIM21, 0);
         HAL_NVIC_EnableIRQ(TIM21_IRQn);
     }
 }
@@ -60,7 +61,32 @@ void HAL_TIM_Encoder_MspInit(TIM_HandleTypeDef *htim) {
         gpio_conf.Pin = GPIO_PIN_ENC_CH2;
         HAL_GPIO_Init(GPIO_PORT_ENC_CH2, &gpio_conf);
 
-        HAL_NVIC_SetPriority(TIM22_IRQn, 5, 0);
+        HAL_NVIC_SetPriority(TIM22_IRQn, NVIC_PRIORITY_TIM22, 0);
         HAL_NVIC_EnableIRQ(TIM22_IRQn);
+    }
+}
+
+void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == TIM2) {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_TIM2_CLK_ENABLE();
+
+        GPIO_InitTypeDef gpio_conf = {
+            .Mode = GPIO_MODE_AF_PP,
+            .Pull = GPIO_NOPULL,
+            .Speed = GPIO_SPEED_FREQ_VERY_HIGH,
+            .Alternate = GPIO_AF2_TIM2,
+        };
+
+        gpio_conf.Pin = GPIO_PIN_PWM_A;
+        HAL_GPIO_Init(GPIO_PORT_PWM_A, &gpio_conf);
+
+        gpio_conf.Pin = GPIO_PIN_PWM_B;
+        HAL_GPIO_Init(GPIO_PORT_PWM_B, &gpio_conf);
+
+        // Configure input capture channel's pin
+        gpio_conf.Alternate = GPIO_AF5_TIM2;
+        gpio_conf.Pin = GPIO_PIN_COMP_OUT;
+        HAL_GPIO_Init(GPIO_PORT_COMP_OUT, &gpio_conf);
     }
 }

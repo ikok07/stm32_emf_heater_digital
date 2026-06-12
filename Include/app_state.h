@@ -9,12 +9,13 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-#include "task_scheduler.h"
 #include "shared_values.h"
 
 typedef struct {
     TaskHandle_t EncTask;
     TaskHandle_t DisplayTask;
+    TaskHandle_t PWMTask;
+    TaskHandle_t ResonanceTask;
 } App_Tasks;
 
 typedef struct {
@@ -27,6 +28,8 @@ typedef struct {
     I2C_HandleTypeDef hi2c;
     TIM_HandleTypeDef htim21;
     TIM_HandleTypeDef htim22;
+    TIM_HandleTypeDef htim2;
+    DMA_HandleTypeDef hdma1ch5;
 } APP_State;
 
 extern APP_State gAppState;

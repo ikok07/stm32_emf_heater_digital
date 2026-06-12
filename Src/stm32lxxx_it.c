@@ -17,5 +17,5 @@ void TIM22_IRQHandler() {
 }
 
 void EXTI0_1_IRQHandler() {
-    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_ENC_RES);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_ENC_PUSH);
 }

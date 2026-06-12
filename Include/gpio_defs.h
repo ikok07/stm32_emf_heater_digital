@@ -22,7 +22,16 @@
 #define GPIO_PORT_ENC_CH2                       GPIOA
 #define GPIO_PIN_ENC_CH2                        GPIO_PIN_7
 
-#define GPIO_PORT_ENC_RES                       GPIOA
-#define GPIO_PIN_ENC_RES                        GPIO_PIN_0
+#define GPIO_PORT_ENC_PUSH                      GPIOA
+#define GPIO_PIN_ENC_PUSH                       GPIO_PIN_0
+
+#define GPIO_PORT_PWM_A                         GPIOA
+#define GPIO_PIN_PWM_A                          GPIO_PIN_2
+
+#define GPIO_PORT_PWM_B                         GPIOA
+#define GPIO_PIN_PWM_B                          GPIO_PIN_3
+
+#define GPIO_PORT_COMP_OUT                      GPIOA
+#define GPIO_PIN_COMP_OUT                       GPIO_PIN_5
 
 #endif //STM32_EMF_HEATER_DIGITAL_GPIO_DEFS_H

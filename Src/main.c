@@ -11,6 +11,7 @@
 
 #include "FreeRTOS.h"
 #include "gpio_defs.h"
+#include "pwm.h"
 #include "task.h"
 
 void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName ) {
@@ -37,12 +38,17 @@ int main(void) {
     }
 
     // Configure display
-    if ((err = DISPLAY_Init()) != ERROR_OK) {
-        ERROR_TriggerFatal(err);
-    }
+    // if ((err = DISPLAY_Init()) != ERROR_OK) {
+    //     ERROR_TriggerFatal(err);
+    // }
 
     // Configure encoder
     if ((err = ENCODER_Init()) != ERROR_OK) {
+        ERROR_TriggerFatal(err);
+    }
+
+    // Configure the PWM signals
+    if ((err = PWM_Init()) != ERROR_OK) {
         ERROR_TriggerFatal(err);
     }
 
@@ -60,11 +66,10 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t Pin) {
-    if (Pin == GPIO_PIN_ENC_RES) {
+    if (Pin == GPIO_PIN_ENC_PUSH) {
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-        // Signal the task to reset the encoder value
-        xTaskNotifyFromISR(gAppState.Tasks.EncTask, 1, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
+        xTaskNotifyFromISR(gAppState.Tasks.EncTask, RESONANCE_FREQ_MODE, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
 
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
