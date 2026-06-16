@@ -83,10 +83,10 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim) {
 
         gpio_conf.Pin = GPIO_PIN_PWM_B;
         HAL_GPIO_Init(GPIO_PORT_PWM_B, &gpio_conf);
-
-        // Configure input capture channel's pin
-        gpio_conf.Alternate = GPIO_AF5_TIM2;
-        gpio_conf.Pin = GPIO_PIN_COMP_OUT;
-        HAL_GPIO_Init(GPIO_PORT_COMP_OUT, &gpio_conf);
     }
+}
+
+void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef *hlptim) {
+    __HAL_RCC_LPTIM1_CLK_ENABLE();
+    __HAL_RCC_LPTIM1_CONFIG(RCC_LPTIM1CLKSOURCE_PCLK1);
 }

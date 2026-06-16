@@ -3,6 +3,7 @@
 //
 
 #include "encoder.h"
+#include "pwm.h"
 
 #include "app_state.h"
 #include "svhal_evt_bits_def.h"
@@ -11,8 +12,9 @@
 #include "gpio_defs.h"
 
 #define ENC_TIM_MAX_VALUE                       0xFFFF
-#define ENC_MIN_VALUE                           5              // Minimum of 10 KHz
-#define ENC_MAX_VALUE                           60             // Maximum of 120 KHz
+#define ENC_START_RESONANCE_MODE                1              // Boot with resonance mode active
+#define ENC_MIN_VALUE                           (MIN_PWM_FREQ_HZ / 1000)
+#define ENC_MAX_VALUE                           (MAX_PWM_FREQ_HZ / 1000)
 
 void enc_task(void *arg);
 
@@ -63,7 +65,7 @@ AppErrorTypeDef ENCODER_Init() {
     NVIC_EnableIRQ(EXTI0_1_IRQn);
 
     SHVAL_ConfigTypeDef shval_config = {
-        .InitialValue = ENC_MIN_VALUE,
+        .InitialValue = ENC_START_RESONANCE_MODE ? 0 : ENC_MIN_VALUE,
         .SubscribersEventBits = SHVAL_EVT_BITS_ENC_VALUE_DISPLAY | SHVAL_EVT_BITS_ENC_VALUE_PWM
     };
 
@@ -87,11 +89,11 @@ void enc_task(void *arg) {
     uint16_t prev_enc_value = ENC_MIN_VALUE;
 
     while (1) {
-        uint32_t task_value;
-        if (xTaskNotifyWait(0x00, 0xFF, &task_value, portMAX_DELAY)) {
+        uint32_t signal;
+        if (xTaskNotifyWait(0x00, 0xFF, &signal, portMAX_DELAY)) {
             uint32_t new_value = prev_enc_value;
 
-            if (task_value == RESONANCE_FREQ_MODE) {
+            if (signal == RESONANCE_FREQ_MODE_SIGNAL) {
                 uint32_t curr_value;
                 if ((shval_err = SHVAL_GetValue(&gAppState.SharedValues.EncValue, &curr_value, pdMS_TO_TICKS(1000))) != SHVAL_ERROR_OK) {
                     ERROR_Trigger(ERROR_ENCODER_SHVAL_READ);

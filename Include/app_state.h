@@ -29,7 +29,8 @@ typedef struct {
     TIM_HandleTypeDef htim21;
     TIM_HandleTypeDef htim22;
     TIM_HandleTypeDef htim2;
-    DMA_HandleTypeDef hdma1ch5;
+    LPTIM_HandleTypeDef hlptim;
+    COMP_HandleTypeDef hcomp1;
 } APP_State;
 
 extern APP_State gAppState;

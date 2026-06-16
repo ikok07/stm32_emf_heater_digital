@@ -68,9 +68,36 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
 void HAL_GPIO_EXTI_Callback(uint16_t Pin) {
     if (Pin == GPIO_PIN_ENC_PUSH) {
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xTaskNotifyFromISR(gAppState.Tasks.EncTask, RESONANCE_FREQ_MODE_SIGNAL, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+}
 
-        xTaskNotifyFromISR(gAppState.Tasks.EncTask, RESONANCE_FREQ_MODE, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
+void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp) {
+    if (hcomp->Instance == COMP1) {
+        static uint8_t timestamp_count = 0;
+        static uint16_t prev_timestamp = 0;
 
+        if (timestamp_count == 0) {
+            prev_timestamp = HAL_LPTIM_ReadCounter(&gAppState.hlptim);
+            timestamp_count++;
+            return;
+        }
+
+        uint16_t current_timestamp = HAL_LPTIM_ReadCounter(&gAppState.hlptim);
+        uint32_t delta = (uint16_t)(current_timestamp - prev_timestamp);
+        timestamp_count = 0;
+
+        if (delta == 0) return;
+
+        // Disable comparator interrupts
+        HAL_NVIC_DisableIRQ(ADC1_COMP_IRQn);
+
+        // Sync phases
+        __HAL_TIM_SET_COUNTER(&gAppState.htim2, 0);
+
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        xTaskNotifyFromISR(gAppState.Tasks.ResonanceTask, delta, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 }

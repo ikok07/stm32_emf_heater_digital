@@ -31,7 +31,10 @@
 #define GPIO_PORT_PWM_B                         GPIOA
 #define GPIO_PIN_PWM_B                          GPIO_PIN_3
 
-#define GPIO_PORT_COMP_OUT                      GPIOA
-#define GPIO_PIN_COMP_OUT                       GPIO_PIN_5
+#define GPIO_PORT_COMP_REF                      GPIOA
+#define GPIO_PIN_COMP_REF                       GPIO_PIN_4
+
+#define GPIO_PORT_COMP_IN                       GPIOA
+#define GPIO_PIN_COMP_IN                        GPIO_PIN_1
 
 #endif //STM32_EMF_HEATER_DIGITAL_GPIO_DEFS_H

@@ -7,7 +7,8 @@
 
 #include "error.h"
 
-#define RESONANCE_FREQ_MODE                     1
+#define RESONANCE_FREQ_MODE_SIGNAL              1
+#define RESONANCE_FREQ_MODE                     0
 
 AppErrorTypeDef ENCODER_Init();
 
