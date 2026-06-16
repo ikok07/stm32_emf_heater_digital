@@ -5,7 +5,7 @@
 #include "gpio_defs.h"
 #include "stm32l0xx_hal.h"
 
-void HAL_LPTIM_MspInit(COMP_HandleTypeDef *hcomp) {
+void HAL_COMP_MspInit(COMP_HandleTypeDef *hcomp) {
     if (hcomp->Instance == COMP1) {
         __HAL_RCC_GPIOA_CLK_ENABLE();
 

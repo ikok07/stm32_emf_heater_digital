@@ -4,10 +4,10 @@
 
 #include "display.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #include "app_state.h"
+#include "encoder.h"
 #include "ssd1306.h"
 #include "svhal_evt_bits_def.h"
 #include "tasks_common.h"
@@ -16,9 +16,10 @@
 #define DISPLAY_FONT_W                  7
 #define DISPLAY_FONT_H                  10
 
-void display_freq(uint8_t frequency);
-
 void display_task(void *arg);
+
+void display_freq(uint8_t frequency);
+void populate_freq_buffer(char *buffer, uint8_t frequency);
 
 AppErrorTypeDef DISPLAY_Init() {
     uint8_t err;
@@ -48,21 +49,6 @@ AppErrorTypeDef DISPLAY_Init() {
     return ERROR_OK;
 }
 
-void display_freq(uint8_t frequency) {
-    char buffer[10];
-    ssd1306_Fill(Black);
-
-    snprintf(buffer, sizeof(buffer), "Frequency");
-    ssd1306_SetCursor((128 - strlen(buffer) * DISPLAY_FONT_W) / 2, 7);
-    ssd1306_WriteString(buffer, DISPLAY_FONT, White);
-
-    snprintf(buffer, sizeof(buffer), "%02d KHz", frequency);
-    ssd1306_SetCursor((128 - strlen(buffer) * DISPLAY_FONT_W) / 2, 39);
-    ssd1306_WriteString(buffer, DISPLAY_FONT, White);
-
-    ssd1306_UpdateScreen(&gAppState.hi2c);
-}
-
 void display_task(void *arg) {
     SHVAL_ErrorTypeDef shval_err;
     uint32_t enc_value;
@@ -81,4 +67,42 @@ void display_task(void *arg) {
             }
         }
     }
+}
+
+void display_freq(uint8_t frequency) {
+    char buffer[14] = "Frequency";
+    ssd1306_Fill(Black);
+
+    ssd1306_SetCursor((128 - strlen(buffer) * DISPLAY_FONT_W) / 2, 7);
+    ssd1306_WriteString(buffer, DISPLAY_FONT, White);
+
+    if (frequency == RESONANCE_FREQ_MODE) {
+        memcpy(buffer, "Resonance mode", strlen("Resonance mode"));
+    } else {
+        populate_freq_buffer(buffer, frequency);
+    }
+    ssd1306_SetCursor((128 - strlen(buffer) * DISPLAY_FONT_W) / 2, 39);
+    ssd1306_WriteString(buffer, DISPLAY_FONT, White);
+
+    ssd1306_UpdateScreen(&gAppState.hi2c);
+}
+
+void populate_freq_buffer(char *buffer, uint8_t frequency) {
+    uint8_t digits_count = 1;
+    if (frequency > 99) digits_count = 3;
+    if (frequency > 9) digits_count = 2;
+
+    uint8_t padding_zeros = digits_count > 1 ? 0 : 1;
+
+    while (frequency > 0) {
+        uint8_t last_digit = frequency % 10;
+        buffer[digits_count - 1] = last_digit + 48;
+        frequency /= 10;
+    }
+
+    for (uint8_t i = 0; i < padding_zeros; i++) {
+        buffer[i] = '0';
+    }
+
+    memcpy(buffer + digits_count, " KHz", sizeof(" KHz"));
 }

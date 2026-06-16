@@ -38,9 +38,9 @@ int main(void) {
     }
 
     // Configure display
-    // if ((err = DISPLAY_Init()) != ERROR_OK) {
-    //     ERROR_TriggerFatal(err);
-    // }
+    if ((err = DISPLAY_Init()) != ERROR_OK) {
+        ERROR_TriggerFatal(err);
+    }
 
     // Configure encoder
     if ((err = ENCODER_Init()) != ERROR_OK) {
