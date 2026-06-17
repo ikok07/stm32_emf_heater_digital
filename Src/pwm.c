@@ -13,12 +13,10 @@
 #include "svhal_evt_bits_def.h"
 #include "tasks_common.h"
 
-#define TIM_CLK_MHZ                         16
+#define TIM_CLK_MHZ                         32
 #define INITIAL_PWM_FREQ_HZ                 120000
 
 #define DEAD_TIME_TICKS                     6       // ~ 375ns
-
-volatile uint32_t input_capture_values[2] = {0};
 
 uint16_t calc_pwm_period(uint32_t freq_hz);
 uint32_t find_resonance_freq();
@@ -119,6 +117,7 @@ AppErrorTypeDef PWM_Init() {
     }
 
     HAL_NVIC_SetPriority(LPTIM1_IRQn, NVIC_PRIORITY_LPTIM1, 0);
+    HAL_NVIC_SetPriority(LPTIM1_IRQn, NVIC_PRIORITY_COMP, 0);
 
     xTaskCreate(
         pwm_task,
@@ -145,7 +144,7 @@ void pwm_task(void *arg) {
     uint32_t enc_value;
     HAL_StatusTypeDef hal_err;
     SHVAL_ErrorTypeDef shval_err;
-    
+
     while (1) {
         if (xEventGroupWaitBits(gAppState.SharedValues.EncValue.EventGroup, SHVAL_EVT_BITS_ENC_VALUE_PWM, pdTRUE, pdFALSE, portMAX_DELAY)) {
             if ((shval_err = SHVAL_GetValue(&gAppState.SharedValues.EncValue, &enc_value, 1000)) != SHVAL_ERROR_OK) {
@@ -164,7 +163,8 @@ void pwm_task(void *arg) {
                 continue;
             }
 
-            uint32_t new_period = calc_pwm_period(enc_value * 1000);
+            // Multiply by 500 because of the centre aligned counter
+            uint32_t new_period = calc_pwm_period(enc_value * 500);
             __HAL_TIM_SET_AUTORELOAD(&gAppState.htim2, new_period - 1);
 
             __HAL_TIM_SET_COMPARE(&gAppState.htim2, TIM_CHANNEL_3, (new_period / 2) - DEAD_TIME_TICKS);
@@ -203,7 +203,8 @@ void resonance_task(void *arg) {
         }
 
         // Enable comparator interrupts
-        HAL_NVIC_EnableIRQ(ADC1_COMP_IRQn);
+        // HAL_NVIC_EnableIRQ(ADC1_COMP_IRQn);
+        HAL_NVIC_EnableIRQ(EXTI4_15_IRQn);
 
         uint32_t delta;
         if (xTaskNotifyWait(0x00, 0xFF, &delta, pdMS_TO_TICKS(1000))) {
@@ -229,7 +230,8 @@ void resonance_task(void *arg) {
             }
         } else {
             // Disable comparator interrupts
-            HAL_NVIC_DisableIRQ(ADC1_COMP_IRQn);
+            // HAL_NVIC_DisableIRQ(ADC1_COMP_IRQn);
+            HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
 
             ERROR_Trigger(ERROR_PWM_COMP_OUT_TIMEOUT);
             continue;
@@ -239,7 +241,11 @@ void resonance_task(void *arg) {
 
 HAL_StatusTypeDef stop_pwm() {
     HAL_StatusTypeDef hal_err = HAL_OK;
-    if ((hal_err = HAL_TIM_Base_Stop(&gAppState.htim2)) != HAL_OK) {
+    if ((hal_err = HAL_TIM_PWM_Stop(&gAppState.htim2, TIM_CHANNEL_3)) != HAL_OK) {
+        return hal_err;
+    }
+
+    if ((hal_err = HAL_TIM_PWM_Stop(&gAppState.htim2, TIM_CHANNEL_4)) != HAL_OK) {
         return hal_err;
     }
     return hal_err;
@@ -247,10 +253,6 @@ HAL_StatusTypeDef stop_pwm() {
 
 HAL_StatusTypeDef start_pwm() {
     HAL_StatusTypeDef hal_err = HAL_OK;
-
-    if ((hal_err = HAL_TIM_Base_Start(&gAppState.htim2)) != HAL_OK) {
-        return hal_err;
-    }
 
     if ((hal_err = HAL_TIM_PWM_Start(&gAppState.htim2, TIM_CHANNEL_3)) != HAL_OK) {
         return hal_err;

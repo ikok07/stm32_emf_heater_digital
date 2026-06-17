@@ -37,4 +37,7 @@
 #define GPIO_PORT_COMP_IN                       GPIOA
 #define GPIO_PIN_COMP_IN                        GPIO_PIN_1
 
+#define GPIO_PORT_TEST                          GPIOA
+#define GPIO_PIN_TEST                           GPIO_PIN_4
+
 #endif //STM32_EMF_HEATER_DIGITAL_GPIO_DEFS_H

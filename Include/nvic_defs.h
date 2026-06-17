@@ -6,7 +6,8 @@
 #define STM32_EMF_HEATER_DIGITAL_NVIC_DEFS_H
 
 #define NVIC_PRIORITY_TIM22                         6               // Encoder
-#define NVIC_PRIORITY_LPTIM1                        5               // Comparator
+#define NVIC_PRIORITY_LPTIM1                        5               // Comparator timer
+#define NVIC_PRIORITY_COMP                          4               // Comparator
 
 /* ------ NON-FREERTOS ------ */
 

@@ -89,4 +89,15 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim) {
 void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef *hlptim) {
     __HAL_RCC_LPTIM1_CLK_ENABLE();
     __HAL_RCC_LPTIM1_CONFIG(RCC_LPTIM1CLKSOURCE_PCLK1);
+
+    /* ------ TEMP ------ */
+    GPIO_InitTypeDef gpio_conf = {
+        .Mode = GPIO_MODE_IT_FALLING,
+        .Pin = GPIO_PIN_TEST,
+        .Pull = GPIO_PULLDOWN,
+        .Speed = GPIO_SPEED_FREQ_VERY_HIGH
+    };
+    HAL_GPIO_Init(GPIO_PORT_TEST, &gpio_conf);
+    HAL_NVIC_SetPriority(EXTI4_15_IRQn, NVIC_PRIORITY_COMP, 0);
+    /* ------ TEMP ------ */
 }

@@ -38,9 +38,9 @@ int main(void) {
     }
 
     // Configure display
-    if ((err = DISPLAY_Init()) != ERROR_OK) {
-        ERROR_TriggerFatal(err);
-    }
+    // if ((err = DISPLAY_Init()) != ERROR_OK) {
+    //     ERROR_TriggerFatal(err);
+    // }
 
     // Configure encoder
     if ((err = ENCODER_Init()) != ERROR_OK) {
@@ -70,11 +70,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t Pin) {
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
         xTaskNotifyFromISR(gAppState.Tasks.EncTask, RESONANCE_FREQ_MODE_SIGNAL, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    }
-}
-
-void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp) {
-    if (hcomp->Instance == COMP1) {
+    } else if (Pin == GPIO_PIN_TEST) {
         static uint8_t timestamp_count = 0;
         static uint16_t prev_timestamp = 0;
 
@@ -91,7 +87,8 @@ void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp) {
         if (delta == 0) return;
 
         // Disable comparator interrupts
-        HAL_NVIC_DisableIRQ(ADC1_COMP_IRQn);
+        // HAL_NVIC_DisableIRQ(ADC1_COMP_IRQn);
+        HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
 
         // Sync phases
         __HAL_TIM_SET_COUNTER(&gAppState.htim2, 0);
@@ -101,3 +98,32 @@ void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp) {
         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 }
+//
+// void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp) {
+//     if (hcomp->Instance == COMP1) {
+//         static uint8_t timestamp_count = 0;
+//         static uint16_t prev_timestamp = 0;
+//
+//         if (timestamp_count == 0) {
+//             prev_timestamp = HAL_LPTIM_ReadCounter(&gAppState.hlptim);
+//             timestamp_count++;
+//             return;
+//         }
+//
+//         uint16_t current_timestamp = HAL_LPTIM_ReadCounter(&gAppState.hlptim);
+//         uint32_t delta = (uint16_t)(current_timestamp - prev_timestamp);
+//         timestamp_count = 0;
+//
+//         if (delta == 0) return;
+//
+//         // Disable comparator interrupts
+//         HAL_NVIC_DisableIRQ(ADC1_COMP_IRQn);
+//
+//         // Sync phases
+//         __HAL_TIM_SET_COUNTER(&gAppState.htim2, 0);
+//
+//         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+//         xTaskNotifyFromISR(gAppState.Tasks.ResonanceTask, delta, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
+//         portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+//     }
+// }
