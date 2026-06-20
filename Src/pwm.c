@@ -39,7 +39,7 @@ AppErrorTypeDef PWM_Init() {
             .CounterMode = TIM_COUNTERMODE_CENTERALIGNED1,
             // .CounterMode = TIM_COUNTERMODE_UP,
             .Prescaler = 0,                // 32 MHz
-            .Period = initial_period - 1
+            .Period = initial_period
         }
     };
 

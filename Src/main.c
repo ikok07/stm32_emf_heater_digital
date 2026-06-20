@@ -91,7 +91,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t Pin) {
         HAL_NVIC_DisableIRQ(EXTI4_15_IRQn);
 
         // Sync phases
-        __HAL_TIM_SET_COUNTER(&gAppState.htim2, 0);
+        __HAL_TIM_DISABLE(&gAppState.htim2);
+        __HAL_TIM_SET_COUNTER(&gAppState.htim2, (__HAL_TIM_GET_AUTORELOAD(&gAppState.htim2) * 100) / 200);
+        __HAL_TIM_ENABLE(&gAppState.htim2);
 
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;
         xTaskNotifyFromISR(gAppState.Tasks.ResonanceTask, delta, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
