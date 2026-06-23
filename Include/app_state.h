@@ -11,18 +11,21 @@
 
 #include "shared_values.h"
 
-typedef struct {
+typedef struct
+{
     TaskHandle_t EncTask;
     TaskHandle_t DisplayTask;
     TaskHandle_t PWMTask;
     TaskHandle_t ResonanceTask;
 } App_Tasks;
 
-typedef struct {
+typedef struct
+{
     SHVAL_HandleTypeDef EncValue;
 } APP_SharedValues;
 
-typedef struct {
+typedef struct
+{
     App_Tasks Tasks;
     APP_SharedValues SharedValues;
     I2C_HandleTypeDef hi2c;
@@ -35,4 +38,4 @@ typedef struct {
 
 extern APP_State gAppState;
 
-#endif //STM32_DIGITAL_POTENTIOMETER_V2_APP_STATE_H
+#endif // STM32_DIGITAL_POTENTIOMETER_V2_APP_STATE_H
